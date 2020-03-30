@@ -3,6 +3,7 @@ package simpledb;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Vector;
 
 /**
  * Tuple maintains information about the contents of a tuple. Tuples have a
@@ -13,6 +14,9 @@ public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private TupleDesc disc;
+    private RecordId id;
+    private Field[] flds;
     /**
      * Create a new tuple with the specified schema (type).
      *
@@ -21,15 +25,16 @@ public class Tuple implements Serializable {
      *            instance with at least one field.
      */
     public Tuple(TupleDesc td) {
-        // some code goes here
+        disc = td;
+        id = null;
+        flds = new Field[td.numFields()];
     }
 
     /**
      * @return The TupleDesc representing the schema of this tuple.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        return null;
+        return disc;
     }
 
     /**
@@ -37,8 +42,7 @@ public class Tuple implements Serializable {
      *         be null.
      */
     public RecordId getRecordId() {
-        // some code goes here
-        return null;
+        return id;
     }
 
     /**
@@ -48,7 +52,7 @@ public class Tuple implements Serializable {
      *            the new RecordId for this tuple.
      */
     public void setRecordId(RecordId rid) {
-        // some code goes here
+        id = rid;
     }
 
     /**
@@ -60,7 +64,7 @@ public class Tuple implements Serializable {
      *            new value for the field.
      */
     public void setField(int i, Field f) {
-        // some code goes here
+        flds[i]=f;
     }
 
     /**
@@ -70,8 +74,7 @@ public class Tuple implements Serializable {
      *            field index to return. Must be a valid index.
      */
     public Field getField(int i) {
-        // some code goes here
-        return null;
+        return flds[i];
     }
 
     /**
@@ -83,8 +86,12 @@ public class Tuple implements Serializable {
      * where \t is any whitespace (except a newline)
      */
     public String toString() {
-        // some code goes here
-        throw new UnsupportedOperationException("Implement this");
+        StringBuffer s = new StringBuffer();
+        for (int i =0;i<flds.length;i++) {
+            if (i>0) s.append("\t");
+            s.append(flds[i].toString());
+        }
+        return s.toString();
     }
 
     /**
@@ -93,8 +100,18 @@ public class Tuple implements Serializable {
      * */
     public Iterator<Field> fields()
     {
-        // some code goes here
-        return null;
+        return new Iterator<Field>() {
+            private int pos= 0;
+            @Override
+            public boolean hasNext() {
+                return pos < flds.length;
+            }
+
+            @Override
+            public Field next() {
+                return flds[pos++];
+            }
+        };
     }
 
     /**
@@ -102,6 +119,8 @@ public class Tuple implements Serializable {
      * */
     public void resetTupleDesc(TupleDesc td)
     {
-        // some code goes here
+        disc = td;
+        id = null;
+        flds = new Field[td.numFields()];
     }
 }
