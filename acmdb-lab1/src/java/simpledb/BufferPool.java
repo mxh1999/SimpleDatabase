@@ -1,5 +1,8 @@
 package simpledb;
 
+import sun.util.resources.cldr.so.CalendarData_so_ET;
+
+import javax.xml.crypto.Data;
 import java.io.*;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +23,9 @@ public class BufferPool {
     private static final int PAGE_SIZE = 4096;
 
     private static int pageSize = PAGE_SIZE;
-    
+
+    private ConcurrentHashMap<PageId, Page> pages;
+    private int numpages;
     /** Default number of pages passed to the constructor. This is used by
     other classes. BufferPool should use the numPages argument to the
     constructor instead. */
@@ -32,7 +37,8 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // some code goes here
+        numpages=numPages;
+        pages = new ConcurrentHashMap<PageId, Page>();
     }
     
     public static int getPageSize() {
@@ -66,8 +72,14 @@ public class BufferPool {
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+        if (pages.containsKey(pid)) return pages.get(pid);
+        else {
+            if (pages.size()>=numpages) evictPage();
+            DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+            Page newpage = dbFile.readPage(pid);
+            pages.put(pid,newpage);
+            return newpage;
+        }
     }
 
     /**

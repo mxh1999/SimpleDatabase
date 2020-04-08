@@ -1,0 +1,22 @@
+Write-up for lab-1
+
+Design:
+
+I try to use the most efficient and simple way to implement lab1. So I try to contain few members in iterators and avoid using containers as possible as I can. I think it's efficient but it may cause some trouble in lab5.
+
+API:
+
+I think "HeapFile.java/readPage" should throw some exception which API doesn't declare. I choose not to change the API and just do nothing when exception occurs.
+
+Incomplete elements:
+
+I try my best to deal with null but maybe there are still some bugs. I'm not good at considering this.
+
+Difficulties:
+
+It took me several nights to complete lab1. I think it's difficult to know the relation among these classes.
+
+
+Sincerely,
+Xiaohan Mao
+517030910413
