@@ -2,6 +2,4 @@
 
 A simple database.
 
-TupleDesc.java without toString
-Tuple.java
-Exercises 1 passed.
+lab2 Exercises 1 passed
