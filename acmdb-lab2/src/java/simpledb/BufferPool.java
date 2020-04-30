@@ -5,6 +5,7 @@ import sun.util.resources.cldr.so.CalendarData_so_ET;
 import javax.xml.crypto.Data;
 import java.io.*;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -143,8 +144,18 @@ public class BufferPool {
      */
     public void insertTuple(TransactionId tid, int tableId, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
+        DbFile f = Database.getCatalog().getDatabaseFile(tableId);
+        ArrayList<Page> tmp = f.insertTuple(tid,t);
+        for (Page page:tmp) {
+            page.markDirty(true,tid);
+            if (pages.containsKey(page.getId())) {
+                pages.remove(page.getId());
+                pages.put(page.getId(),page);
+            }   else {
+                if (pages.size()>=numpages) evictPage();
+                pages.put(page.getId(),page);
+            }
+        }
     }
 
     /**
@@ -162,8 +173,18 @@ public class BufferPool {
      */
     public  void deleteTuple(TransactionId tid, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
+        DbFile f = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
+        ArrayList<Page> tmp = f.deleteTuple(tid,t);
+        for (Page page:tmp) {
+            page.markDirty(true,tid);
+            if (pages.containsKey(page.getId())) {
+                pages.remove(page.getId());
+                pages.put(page.getId(),page);
+            }   else {
+                if (pages.size()>=numpages) evictPage();
+                pages.put(page.getId(),page);
+            }
+        }
     }
 
     /**
