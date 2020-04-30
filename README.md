@@ -2,4 +2,4 @@
 
 A simple database.
 
-lab2 Exercises 1 passed
+lab2 passed
