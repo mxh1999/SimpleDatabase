@@ -1,0 +1,23 @@
+Write-up for lab-1
+
+Design:
+
+I think there's no design in lab2.
+
+
+API:
+
+I don't change any API of lab2.
+
+Incomplete elements:
+
+None
+
+Difficulties:
+
+It took me a whole day to complete lab2. I think the unit test of delete is too weak. It took me a lot of time to debug when I failed systemtest.
+
+
+Sincerely,
+Xiaohan Mao
+517030910413
