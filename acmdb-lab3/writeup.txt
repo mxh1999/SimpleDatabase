@@ -1,13 +1,14 @@
-Write-up for lab-1
+Write-up for lab-3
 
 Design:
 
-I think there's no design in lab2.
+As time is limited, I don't implement any outstanding design in lab3 which may lead to my program running slowly.
 
 
 API:
 
-I don't change any API of lab2.
+I don't change any API of lab3.
+What's more, in Insert.java/fetchNext() and Delete.java/fetchNext() I just ignore IOException because of API.
 
 Incomplete elements:
 
@@ -15,7 +16,12 @@ None
 
 Difficulties:
 
-It took me a whole day to complete lab2. I think the unit test of delete is too weak. It took me a lot of time to debug when I failed systemtest.
+It took me some days to complete lab3. I think it's very hard to debug when I made some mistakes in lab1/lab2.
+
+Contest:
+
+My program runs 5.2s in contest1.
+It runs over a lot of minutes in contest2. I killed it before terminated.
 
 
 Sincerely,

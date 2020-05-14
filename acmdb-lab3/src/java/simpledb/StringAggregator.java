@@ -1,11 +1,21 @@
 package simpledb;
 
+import java.util.HashMap;
+
 /**
  * Knows how to compute some aggregate over a set of StringFields.
  */
 public class StringAggregator implements Aggregator {
 
     private static final long serialVersionUID = 1L;
+
+    private int gbfield;
+    private Type gbfieldtype;
+    private int afield;
+    private Op what;
+    private TupleDesc td;
+    private HashMap<Field, Integer> ans;
+    private HashMap<Field, Tuple> fin;
 
     /**
      * Aggregate constructor
@@ -17,7 +27,16 @@ public class StringAggregator implements Aggregator {
      */
 
     public StringAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
-        // some code goes here
+        this.gbfield = gbfield;
+        this.gbfieldtype = gbfieldtype;
+        this.afield = afield;
+        this.what = what;
+        this.ans = new HashMap<>();
+        this.fin = new HashMap<>();
+        if (gbfield == NO_GROUPING)
+            this.td = new TupleDesc(new Type[]{Type.INT_TYPE});
+        else
+            this.td = new TupleDesc(new Type[]{gbfieldtype, Type.INT_TYPE});
     }
 
     /**
@@ -25,7 +44,20 @@ public class StringAggregator implements Aggregator {
      * @param tup the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        // some code goes here
+        Field key = null;
+        if (gbfield != NO_GROUPING) key = tup.getField(gbfield);
+        if (what == Op.COUNT) {
+            ans.merge(key, 1, Integer::sum);
+        }
+        Tuple tp = new Tuple(td);
+        if (gbfield == NO_GROUPING) {
+            tp.setField(0,new IntField(ans.get(key)));
+        }   else {
+            tp.setField(0,key);
+            if (what == Op.COUNT)
+                tp.setField(1,new IntField(ans.get(key)));
+        }
+        fin.put(key,tp);
     }
 
     /**
@@ -37,8 +69,6 @@ public class StringAggregator implements Aggregator {
      *   aggregate specified in the constructor.
      */
     public DbIterator iterator() {
-        // some code goes here
-        throw new UnsupportedOperationException("please implement me for lab3");
+        return new TupleIterator(td,fin.values());
     }
-
 }

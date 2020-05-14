@@ -30,6 +30,12 @@ public class Tuple implements Serializable {
         flds = new Field[td.numFields()];
     }
 
+    public static Tuple merge(Tuple x,Tuple y) {
+        Tuple ans = new Tuple(TupleDesc.merge(x.getTupleDesc(),y.getTupleDesc()));
+        for (int i=0,j=x.getTupleDesc().numFields();i<j;i++) ans.setField(i,x.getField(i));
+        for (int i=0,j=y.getTupleDesc().numFields();i<j;i++) ans.setField(i+x.getTupleDesc().numFields(),y.getField(i));
+        return ans;
+    }
     /**
      * @return The TupleDesc representing the schema of this tuple.
      */

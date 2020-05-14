@@ -1,11 +1,21 @@
 package simpledb;
 
+import java.util.HashMap;
+
 /**
  * Knows how to compute some aggregate over a set of IntFields.
  */
 public class IntegerAggregator implements Aggregator {
 
     private static final long serialVersionUID = 1L;
+
+    private int gbfield;
+    private int afield;
+    private Op what;
+    private HashMap<Field, Integer> ans;
+    private HashMap<Field, Integer> sum,num;//for AVG
+    private TupleDesc td;
+    private HashMap<Field, Tuple> fin;
 
     /**
      * Aggregate constructor
@@ -23,7 +33,21 @@ public class IntegerAggregator implements Aggregator {
      */
 
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
-        // some code goes here
+        this.gbfield = gbfield;
+        this.afield = afield;
+        this.what = what;
+        this.ans = new HashMap<>();
+        this.fin = new HashMap<>();
+        if (what.equals(Op.AVG)) {
+            this.sum = new HashMap<>();
+            this.num = new HashMap<>();
+        }   else {
+            this.sum = this.num = null;
+        }
+        if (gbfield == NO_GROUPING)
+            this.td = new TupleDesc(new Type[]{Type.INT_TYPE});
+        else
+            this.td = new TupleDesc(new Type[]{gbfieldtype, Type.INT_TYPE});
     }
 
     /**
@@ -34,7 +58,36 @@ public class IntegerAggregator implements Aggregator {
      *            the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        // some code goes here
+        Field key = null;
+        if (gbfield != NO_GROUPING) key = tup.getField(gbfield);
+        int val = ((IntField)tup.getField(afield)).getValue();
+        switch (what) {
+            case COUNT:
+                ans.merge(key, 1, Integer::sum);
+                break;
+            case SUM:
+                ans.merge(key, val,Integer::sum);
+                break;
+            case AVG:
+                sum.merge(key, val, Integer::sum);
+                num.merge(key, 1, Integer::sum);
+                ans.put(key,sum.get(key)/num.get(key));
+                break;
+            case MAX:
+                ans.merge(key, val, Integer::max);
+                break;
+            case MIN:
+                ans.merge(key, val, Integer::min);
+                break;
+        }
+        Tuple tp = new Tuple(td);
+        if (gbfield == NO_GROUPING) {
+            tp.setField(0,new IntField(ans.get(key)));
+        }   else {
+            tp.setField(0,key);
+            tp.setField(1,new IntField(ans.get(key)));
+        }
+        fin.put(key,tp);
     }
 
     /**
@@ -46,9 +99,6 @@ public class IntegerAggregator implements Aggregator {
      *         the constructor.
      */
     public DbIterator iterator() {
-        // some code goes here
-        throw new
-        UnsupportedOperationException("please implement me for lab3");
+        return new TupleIterator(td,fin.values());
     }
-
 }

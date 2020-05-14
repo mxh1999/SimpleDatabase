@@ -20,7 +20,7 @@ public class HeapPage implements Page {
     final int numSlots;
 
     byte[] oldData;
-    private final Byte oldDataLock=new Byte((byte)0);
+    private final Byte oldDataLock= (byte) 0;
     private TransactionId dirtyid = null;
 
     /**
@@ -161,9 +161,9 @@ public class HeapPage implements Page {
         DataOutputStream dos = new DataOutputStream(baos);
 
         // create the header of the page
-        for (int i=0; i<header.length; i++) {
+        for (byte b : header) {
             try {
-                dos.writeByte(header[i]);
+                dos.writeByte(b);
             } catch (IOException e) {
                 // this really shouldn't happen
                 e.printStackTrace();
@@ -238,6 +238,7 @@ public class HeapPage implements Page {
      * @param t The tuple to delete
      */
     public void deleteTuple(Tuple t) throws DbException {
+        if (!t.getRecordId().getPageId().equals(pid)) throw new DbException("wrong pages");
         if (isSlotUsed(t.getRecordId().tupleno())) {
             markSlotUsed(t.getRecordId().tupleno(),false);
             return;
@@ -333,6 +334,4 @@ public class HeapPage implements Page {
             }
         };
     }
-
 }
-
