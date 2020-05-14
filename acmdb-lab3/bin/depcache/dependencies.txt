@@ -928,7 +928,7 @@ simpledb.BTreeUtility$BTreeWriter
 java.lang.Exception
 ||:simpledb.Utility
 simpledb.HeapPage
-java.lang.invoke.MethodHandles
+java.lang.StringBuilder
 java.lang.System
 java.util.ArrayList
 java.io.File
@@ -937,9 +937,8 @@ java.util.UUID
 simpledb.Catalog
 java.io.PrintStream
 [Lsimpledb.Type;
-java.lang.invoke.StringConcatFactory
-java.io.IOException
 [Ljava.lang.String;
+java.io.IOException
 java.lang.RuntimeException
 java.util.Iterator
 simpledb.Utility
@@ -947,7 +946,6 @@ simpledb.Tuple
 java.io.FileOutputStream
 simpledb.IntField
 simpledb.HeapFile
-java.lang.invoke.MethodHandles$Lookup
 simpledb.TupleDesc
 simpledb.Database
 java.lang.Integer
@@ -1083,9 +1081,12 @@ simpledb.DbException
 simpledb.Tuple
 java.util.NoSuchElementException
 simpledb.DbIterator
+simpledb.Predicate$Op
+simpledb.Predicate
 simpledb.Join
 simpledb.TransactionAbortedException
 simpledb.JoinPredicate
+simpledb.HashEquiJoin
 simpledb.Operator
 ||:simpledb.systemtest.InsertTest
 simpledb.systemtest.InsertTest

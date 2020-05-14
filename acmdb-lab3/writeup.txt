@@ -20,8 +20,7 @@ It took me some days to complete lab3. I think it's very hard to debug when I ma
 
 Contest:
 
-My program runs 5.2s in contest1.
-It runs over a lot of minutes in contest2. I killed it before terminated.
+My program runs 5.2s in contest1, 73.1s in contest2 and about 107s in contest3
 
 
 Sincerely,

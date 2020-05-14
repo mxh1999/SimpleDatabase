@@ -12,6 +12,7 @@ public class Join extends Operator {
     private DbIterator child1;
     private DbIterator child2;
     private Tuple now1,now2;
+    private HashEquiJoin has;
 
     /**
      * Constructor. Accepts to children to join and the predicate to join them
@@ -28,6 +29,7 @@ public class Join extends Operator {
         this.p=p;
         this.child1 = child1;
         this.child2 = child2;
+        if (p.getOperator().equals(Predicate.Op.EQUALS)) this.has = new HashEquiJoin(p,child1,child2);else this.has = null;
     }
 
     public JoinPredicate getJoinPredicate() {
@@ -62,6 +64,7 @@ public class Join extends Operator {
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
+        if (this.has != null) this.has.open();
         child1.open();
         child2.open();
         super.open();
@@ -69,6 +72,7 @@ public class Join extends Operator {
     }
 
     public void close() {
+        if (this.has != null) this.has.close();
         super.close();
         child1.close();
         child2.close();
@@ -76,6 +80,7 @@ public class Join extends Operator {
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
+        if (this.has != null) this.has.rewind();
         child1.rewind();
         child2.rewind();
         now1=now2=null;
@@ -100,6 +105,7 @@ public class Join extends Operator {
      * @see JoinPredicate#filter
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
+        if (this.has != null) return this.has.fetchNext();
         while (true) {
             if (now1 == null) {
                 if (!child1.hasNext()) return null;
@@ -116,6 +122,7 @@ public class Join extends Operator {
 
     @Override
     public DbIterator[] getChildren() {
+        if (this.has != null) return this.has.getChildren();
         DbIterator[] ans = new DbIterator[2];
         ans[0]=child1;
         ans[1]=child2;
@@ -124,6 +131,7 @@ public class Join extends Operator {
 
     @Override
     public void setChildren(DbIterator[] children) {
+        if (this.has != null) this.has.setChildren(children);
         child1 = children[0];
         child2 = children[1];
     }
