@@ -111,7 +111,7 @@ public class JoinOptimizer {
             // HINT: You may need to use the variable "j" if you implemented
             // a join algorithm that's more complicated than a basic
             // nested-loops join.
-            return -1.0;
+            return cost1+card1*cost2+card1*card2;
         }
     }
 
@@ -155,9 +155,13 @@ public class JoinOptimizer {
             String field2PureName, int card1, int card2, boolean t1pkey,
             boolean t2pkey, Map<String, TableStats> stats,
             Map<String, Integer> tableAliasToId) {
-        int card = 1;
-        // some code goes here
-        return card <= 0 ? 1 : card;
+        if (joinOp== Predicate.Op.EQUALS) {
+            if (t1pkey && t2pkey) return Math.min(card1,card2);
+            if (t1pkey) return card2;
+            if (t2pkey) return card1;
+            return Math.min(card1,card2);
+        }
+        return (int)(0.3*card1*card2);
     }
 
     /**
@@ -219,9 +223,24 @@ public class JoinOptimizer {
             throws ParsingException {
         //Not necessary for labs 1--3
 
-        // some code goes here
-        //Replace the following
-        return joins;
+        int siz = joins.size();
+        PlanCache pc = new PlanCache();
+        for (int i=1;i<=siz;i++) {
+            Set<Set<LogicalJoinNode>> subset = enumerateSubsets(joins,i);
+            for (Set<LogicalJoinNode> s:subset) {
+                CostCard ans = null;
+                double minc = Double.MAX_VALUE;
+                for (LogicalJoinNode j:s) {
+                    CostCard c = computeCostAndCardOfSubplan(stats,filterSelectivities,j,s,minc,pc);
+                    if (c!=null && (ans ==null || c.cost<minc)) {
+                        ans = c;
+                        minc = c.cost;
+                    }
+                }
+                if (ans !=null) pc.addPlan(s,ans.cost,ans.card,ans.plan);
+            }
+        }
+        return pc.getOrder(new HashSet<LogicalJoinNode>(joins));
     }
 
     // ===================== Private Methods =================================

@@ -1,5 +1,6 @@
 package simpledb;
 
+import javax.xml.crypto.Data;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -66,6 +67,12 @@ public class TableStats {
      */
     static final int NUM_HIST_BINS = 100;
 
+    private int tableid;
+    private int ioCostPerPage;
+    private boolean[] isint;
+    private Object[] histograms;
+    private int numTup;
+    private int numPage;
     /**
      * Create a new TableStats object, that keeps track of statistics on each
      * column of a table
@@ -77,14 +84,60 @@ public class TableStats {
      *            sequential-scan IO and disk seeks.
      */
     public TableStats(int tableid, int ioCostPerPage) {
-        // For this function, you'll have to get the
-        // DbFile for the table in question,
-        // then scan through its tuples and calculate
-        // the values that you need.
-        // You should try to do this reasonably efficiently, but you don't
-        // necessarily have to (for example) do everything
-        // in a single scan of the table.
-        // some code goes here
+        this.tableid = tableid;
+        this.ioCostPerPage = ioCostPerPage;
+        DbFile file = Database.getCatalog().getDatabaseFile(tableid);
+        this.numPage = ((HeapFile)file).numPages();
+        TupleDesc td = file.getTupleDesc();
+        int numfields = td.numFields();
+        isint = new boolean[numfields];
+        int[] minx = new int[numfields];
+        int[] maxx = new int[numfields];
+        histograms = new Object[numfields];
+        for (int i=0;i<numfields;i++) {
+            if (td.getFieldType(i).equals(Type.INT_TYPE)) {
+                isint[i]=true;
+                minx[i]= Integer.MAX_VALUE;
+                maxx[i]= Integer.MIN_VALUE;
+            }   else isint[i]=false;
+        }
+        numTup = 0;
+        TransactionId tid = new TransactionId();
+        try {
+            DbFileIterator iter = file.iterator(tid);
+            iter.open();
+            while (iter.hasNext()) {
+                Tuple t = iter.next();
+                numTup ++;
+                for (int i=0;i<numfields;i++) {
+                    Field f=t.getField(i);
+                    if (isint[i]) {
+                        int val = ((IntField)f).getValue();
+                        minx[i]=Math.min(minx[i],val);
+                        maxx[i]=Math.max(maxx[i],val);
+                    }
+                }
+            }
+            for (int i=0;i<numfields;i++)
+                if (isint[i])
+                    histograms[i]=new IntHistogram(NUM_HIST_BINS,minx[i],maxx[i]);
+                else
+                    histograms[i]=new StringHistogram(NUM_HIST_BINS);
+            iter.rewind();
+            while (iter.hasNext()) {
+                Tuple t = iter.next();
+                for (int i=0;i<numfields;i++) {
+                    Field f =t.getField(i);
+                    if (isint[i]) {
+                        int val = ((IntField)f).getValue();
+                        ((IntHistogram)histograms[i]).addValue(val);
+                    }   else {
+                        String val = ((StringField)f).getValue();
+                        ((StringHistogram)histograms[i]).addValue(val);
+                    }
+                }
+            }
+        } catch (Exception ignore) {}
     }
 
     /**
@@ -100,8 +153,7 @@ public class TableStats {
      * @return The estimated cost of scanning the table.
      */
     public double estimateScanCost() {
-        // some code goes here
-        return 0;
+        return ioCostPerPage*numPage;
     }
 
     /**
@@ -114,8 +166,7 @@ public class TableStats {
      *         selectivityFactor
      */
     public int estimateTableCardinality(double selectivityFactor) {
-        // some code goes here
-        return 0;
+        return (int)(numTup*selectivityFactor);
     }
 
     /**
@@ -147,16 +198,15 @@ public class TableStats {
      *         predicate
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
-        // some code goes here
-        return 1.0;
+        if (constant.getType().equals(Type.INT_TYPE)) return ((IntHistogram)histograms[field]).estimateSelectivity(op,((IntField)constant).getValue());
+        return ((StringHistogram)histograms[field]).estimateSelectivity(op,((StringField)constant).getValue());
     }
 
     /**
      * return the total number of tuples in this table
      * */
     public int totalTuples() {
-        // some code goes here
-        return 0;
+        return numTup;
     }
 
 }

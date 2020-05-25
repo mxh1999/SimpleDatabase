@@ -4,6 +4,12 @@ package simpledb;
  */
 public class IntHistogram {
 
+    private int buckets;
+    private int min;
+    private int max;
+    private int siz;
+    private int[] bucket;
+    private int ntups;
     /**
      * Create a new IntHistogram.
      * 
@@ -21,7 +27,12 @@ public class IntHistogram {
      * @param max The maximum integer value that will ever be passed to this class for histogramming
      */
     public IntHistogram(int buckets, int min, int max) {
-    	// some code goes here
+    	this.buckets = buckets;
+    	this.min = min;
+    	this.max = max;
+    	this.bucket = new int[buckets];
+    	this.ntups = 0;
+    	this.siz = (max-min)/buckets+1;
     }
 
     /**
@@ -29,7 +40,9 @@ public class IntHistogram {
      * @param v Value to add to the histogram
      */
     public void addValue(int v) {
-    	// some code goes here
+    	int id = (v-min)/siz;
+    	bucket[id]++;
+    	ntups++;
     }
 
     /**
@@ -43,9 +56,48 @@ public class IntHistogram {
      * @return Predicted selectivity of this particular operator and value
      */
     public double estimateSelectivity(Predicate.Op op, int v) {
-
-    	// some code goes here
-        return -1.0;
+        int id;
+        double ans =0;
+        switch (op) {
+            case EQUALS:
+                if (v<min || v>max) return 0;
+                id = (v-min)/siz;
+                return (double)bucket[id]/ntups/siz;
+            case NOT_EQUALS:
+                if (v<min || v>max) return 1;
+                id = (v-min)/siz;
+                return 1.0-(double)bucket[id]/ntups/siz;
+            case LESS_THAN:
+                if (v<min) return 0;
+                if (v>max) return 1;
+                id = (v-min)/siz;
+                for (int i=0;i<id;i++)
+                    ans += (double)bucket[i]/ntups;
+                return ans;
+            case LESS_THAN_OR_EQ:
+                if (v<min) return 0;
+                if (v>max) return 1;
+                id = (v-min)/siz;
+                for (int i=0;i<=id;i++)
+                    ans += (double)bucket[i]/ntups;
+                return ans;
+            case GREATER_THAN:
+                if (v<min) return 1;
+                if (v>max) return 0;
+                id = (v-min)/siz;
+                for (int i=id+1;i<buckets;i++)
+                    ans += (double)bucket[i]/ntups;
+                return ans;
+            case GREATER_THAN_OR_EQ:
+                if (v<min) return 1;
+                if (v>max) return 0;
+                id = (v-min)/siz;
+                for (int i=id;i<buckets;i++)
+                    ans += (double)bucket[i]/ntups;
+                return ans;
+            default:
+                return -1;
+        }
     }
     
     /**
@@ -66,7 +118,6 @@ public class IntHistogram {
      * @return A string describing this histogram, for debugging purposes
      */
     public String toString() {
-        // some code goes here
-        return null;
+        return bucket.toString();
     }
 }
