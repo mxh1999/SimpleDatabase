@@ -2,4 +2,4 @@
 
 A simple database.
 
-lab3 passed
+lab4 passed
