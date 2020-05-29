@@ -123,6 +123,7 @@ simpledb.BufferPool
 java.lang.Object
 simpledb.HeapFile$HeapFileIterator
 simpledb.HeapPage
+java.lang.Exception
 ||:simpledb.Operator
 java.lang.Object
 simpledb.Operator
@@ -1726,8 +1727,8 @@ simpledb.PageId
 simpledb.Tuple
 simpledb.HeapFile$HeapFileIterator
 simpledb.HeapFile
+java.lang.Exception
 simpledb.Database
-java.lang.Math
 simpledb.DbFile
 simpledb.HeapPageId
 java.lang.Object
