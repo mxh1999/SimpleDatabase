@@ -1,0 +1,24 @@
+Write-up for lab-3
+
+Design:
+
+I just implement the designed which is showed on the exercises. I don't implement StringHistogram.
+
+API:
+
+I don't change any API of lab4.
+What's more, TableStats will ignore any exception.
+
+Incomplete elements:
+
+None
+
+Difficulties:
+
+None
+It took me about 2 hours.
+
+
+Sincerely,
+Xiaohan Mao
+517030910413
