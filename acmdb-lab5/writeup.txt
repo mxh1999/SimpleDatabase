@@ -1,13 +1,26 @@
-Write-up for lab-3
+Write-up for lab-5
 
 Design:
 
-I just implement the designed which is showed on the exercises. I don't implement StringHistogram.
+I design a lockmanager to manage locks.
+A lockmanager contains two hashmaps:
+One records the set of TransactionId which operators (read/write) the specific page. 
+Another records the set of PageId which this transaction operates.
+
+Based on this, every page has some state: 
+EMPTY means no transaction is operating it.
+READ1 means exactly one transaction is reading it.
+WRITE means exactly one transaction is reading and writing it.
+READ2 means more than one transactions are reading it.
+
+Please refer to getlock() in LockManager.java for details.
+
+If a getPage() fails to require a lock, it will wait for 100ms and try again. If it has failed for more than 10 times, I assume there's a deadlock and throw a TransactionAbortedException.
+
 
 API:
 
-I don't change any API of lab4.
-What's more, TableStats will ignore any exception.
+I don't change any API of lab5.
 
 Incomplete elements:
 
@@ -15,8 +28,7 @@ None
 
 Difficulties:
 
-None
-It took me about 2 hours.
+I tried to implement a dependency graph but failed.
 
 
 Sincerely,

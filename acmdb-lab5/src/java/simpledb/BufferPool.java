@@ -25,6 +25,7 @@ public class BufferPool {
 
     private static int pageSize = PAGE_SIZE;
 
+    private LockManager lockManager;
     private ConcurrentHashMap<PageId, Page> pages;
     private int numpages;
     /** Default number of pages passed to the constructor. This is used by
@@ -40,6 +41,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
         numpages=numPages;
         pages = new ConcurrentHashMap<PageId, Page>();
+        lockManager = new LockManager();
     }
     
     public static int getPageSize() {
@@ -71,13 +73,23 @@ public class BufferPool {
      * @param pid the ID of the requested page
      * @param perm the requested permissions on the page
      */
-    public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
+    public synchronized Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
+        int waitcnt = 0;
+        while (!lockManager.getlock(tid,pid,perm)) {
+            try {
+                wait(100);
+            } catch (InterruptedException ignore) {}
+            waitcnt ++;
+            if (waitcnt>10) {
+                throw new TransactionAbortedException();
+            }
+        }
         if (pages.containsKey(pid)) return pages.get(pid);
         else {
-            if (pages.size()>=numpages) evictPage();
             DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
             Page newpage = dbFile.readPage(pid);
+            if (pages.size()>=numpages) evictPage();
             pages.put(pid,newpage);
             return newpage;
         }
@@ -92,9 +104,8 @@ public class BufferPool {
      * @param tid the ID of the transaction requesting the unlock
      * @param pid the ID of the page to unlock
      */
-    public  void releasePage(TransactionId tid, PageId pid) {
-        // some code goes here
-        // not necessary for lab1|lab2
+    public void releasePage(TransactionId tid, PageId pid) {
+        lockManager.eraseTP(new LockManager.TP(tid,pid,Permissions.READ_WRITE));
     }
 
     /**
@@ -103,15 +114,12 @@ public class BufferPool {
      * @param tid the ID of the transaction requesting the unlock
      */
     public void transactionComplete(TransactionId tid) throws IOException {
-        // some code goes here
-        // not necessary for lab1|lab2
+        transactionComplete(tid,true);
     }
 
     /** Return true if the specified transaction has a lock on the specified page */
     public boolean holdsLock(TransactionId tid, PageId p) {
-        // some code goes here
-        // not necessary for lab1|lab2
-        return false;
+        return lockManager.queryTP(tid,p)!=null;
     }
 
     /**
@@ -123,8 +131,19 @@ public class BufferPool {
      */
     public void transactionComplete(TransactionId tid, boolean commit)
         throws IOException {
-        // some code goes here
-        // not necessary for lab1|lab2
+        ArrayList<LockManager.TP> tmp = (ArrayList<LockManager.TP>) lockManager.query_tid(tid).clone();
+        if (!commit) {
+            ArrayList<Page> dirtypages = new ArrayList<>();
+            for (Page page:pages.values()) {
+                TransactionId id = page.isDirty();
+                LockManager.TP tp = lockManager.queryTP(tid,page.getId());
+                if (tp!=null) {
+                    if ((id!=null && id.equals(tid))||tp.permissions.equals(Permissions.READ_WRITE)) dirtypages.add(page);
+                }
+            }
+            for (Page page:dirtypages) pages.remove(page.getId());
+        }   else flushPages(tid);
+        for (LockManager.TP tp:tmp) lockManager.eraseTP(tp);
     }
 
     /**
@@ -226,8 +245,14 @@ public class BufferPool {
     /** Write all pages of the specified transaction to disk.
      */
     public synchronized  void flushPages(TransactionId tid) throws IOException {
-        // some code goes here
-        // not necessary for lab1|lab2
+        for (Page page: pages.values()) {
+            TransactionId id = page.isDirty();
+            if (id != null && id.equals(tid)) {
+                page.markDirty(false,tid);
+                PageId pid = page.getId();
+                Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(pages.get(pid));
+            }
+        }
     }
 
     /**
