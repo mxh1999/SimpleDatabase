@@ -2,4 +2,6 @@
 
 A simple database.
 
-lab4 passed
+lab5 passed.
+I will never try to debug a multi-threading program. NEVER.
+Timeout mechanism is the BEST!
